@@ -8,7 +8,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir numpy torch torchvision torchaudio gym tqdm
 
 # Copy source files
-COPY src/ /app/src/
+COPY . /app/src/
 
 # Create directories for models and results
 RUN mkdir -p /app/models /app/results
