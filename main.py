@@ -56,41 +56,35 @@ def parse_arguments():
     parser.add_argument('--gpu-index', type=int, default=0, metavar='N')
     return parser.parse_args()
 
-
 def setup_environment(args):
-    """Set up the environment, random seeds, and device"""
-    # Set device
-
+    # Import both modules at the top level of the function
+    import gymnasium
+    import gym as original_gym
+    import torch
+    
+    # Try to use gymnasium with converted environment name
     try:
-        # Try to use the new Gymnasium adapter
-        import environment_adapter as gym_adapter
-        env = gym_adapter.make(args.env_name)
-        print(f"Using Gymnasium environment: {args.env_name}")
+        env_name = args.env_name
+        if "v2" in env_name:
+            env_name = env_name.replace("v2", "v4")
+        env = gymnasium.make(env_name)
+        print(f"Using Gymnasium environment: {env_name}")
     except Exception as e:
-        # Fall back to original gym as a last resort
-        print(f"Failed to use Gymnasium ({str(e)}), falling back to original gym")
-        import gym
-        env = gym.make(args.env_name)
+        # Fall back to original gym
+        print(f"Using original gym: {args.env_name}")
+        env = original_gym.make(args.env_name)
     
-    dtype = torch.float64
-    torch.set_default_dtype(dtype)
-    device = torch.device('cuda', index=args.gpu_index) if torch.cuda.is_available() else torch.device('cpu')
-    if torch.cuda.is_available():
-        torch.cuda.set_device(args.gpu_index)
-    
-    # Create environment
-    env = gym.make(args.env_name)
     state_dim = env.observation_space.shape[0]
+    
     is_disc_action = len(env.action_space.shape) == 0
     action_dim = 1 if is_disc_action else env.action_space.shape[0]
     
-    # Set up state normalization
-    running_state = zfilter((state_dim,), clip=5)
+    # Fix for zfilter issue - import the correct class
+    from utils.zfilter import ZFilter  # Adjust import path if needed
+    running_state = ZFilter((state_dim,), clip=5)
     
-    # Set random seeds
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    env.seed(args.seed)
+    device = torch.device('cuda', index=args.gpu_index) if torch.cuda.is_available() else torch.device('cpu')
+    dtype = torch.float64
     
     return env, state_dim, is_disc_action, action_dim, running_state, device, dtype
 
