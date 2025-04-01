@@ -95,7 +95,7 @@ def setup_models(state_dim, action_dim, is_disc_action, env, args, device):
     if is_disc_action:
         policy_net = DiscretePolicy(state_dim, env.action_space.n)
     else:
-        policy_net = Policy(state_dim, env.action_space.shape[0], log_std=args.log_std)
+        policy_net = Policy(state_dim, env.action_space.shape[0])
     
     value_net = Value(state_dim)
     discrim_net = Discriminator(state_dim + action_dim)
