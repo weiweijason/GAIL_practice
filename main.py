@@ -11,10 +11,10 @@ from torch import nn
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils import *
-from models.mlp_policy import Policy
-from models.mlp_critic import Value
-from models.mlp_policy_disc import DiscretePolicy
-from models.mlp_discriminator import Discriminator
+from models.policy import Policy
+from models.critic import Value
+from models.policy_disc import DiscretePolicy
+from models.discriminator import Discriminator
 from core.ppo import ppo_step
 from core.common import estimate_advantages
 from core.agent import Agent
