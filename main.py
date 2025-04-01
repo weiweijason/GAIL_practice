@@ -1,5 +1,4 @@
 import argparse
-import gym
 import os
 import sys
 import pickle
@@ -9,7 +8,6 @@ import torch
 import math
 from torch import nn
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from utils import *
 import utils.zfilter as zfilter
 from models.policy import Policy
@@ -19,7 +17,6 @@ from models.discriminator import Discriminator
 from core.ppo import ppo_step
 from core.common import estimate_advantages
 from core.agent import Agent
-
 import environment_adapter as gym  # This will replace the original gym import
 
 def parse_arguments():
