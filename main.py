@@ -19,6 +19,16 @@ from core.common import estimate_advantages
 from core.agent import Agent
 import environment_adapter as gym  # This will replace the original gym import
 
+def to_device(device, *models):
+    """Move all PyTorch models to the specified device."""
+    result = []
+    for model in models:
+        if model is not None:
+            result.append(model.to(device))
+        else:
+            result.append(None)
+    return result if len(result) > 1 else result[0]
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='PyTorch GAIL example')
     parser.add_argument('--env-name', default="Hopper-v2", metavar='G',
