@@ -11,6 +11,7 @@ from torch import nn
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils import *
+import utils.zfilter as zfilter
 from models.policy import Policy
 from models.value import Value
 from models.policy_disc import DiscretePolicy
@@ -94,7 +95,7 @@ def setup_environment(args):
     action_dim = 1 if is_disc_action else env.action_space.shape[0]
     
     # Set up state normalization
-    running_state = ZFilter((state_dim,), clip=5)
+    running_state = zfilter((state_dim,), clip=5)
     
     # Set random seeds
     np.random.seed(args.seed)
