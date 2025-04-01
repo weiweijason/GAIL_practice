@@ -22,25 +22,6 @@ from core.agent import Agent
 
 import environment_adapter as gym  # This will replace the original gym import
 
-# Or alternatively, modify your setup_environment function:
-def setup_environment(args):
-    try:
-        # Try to use the new Gymnasium adapter
-        import environment_adapter as gym_adapter
-        env = gym_adapter.make(args.env_name)
-        print(f"Using Gymnasium environment: {args.env_name}")
-    except Exception as e:
-        # Fall back to original gym as a last resort
-        print(f"Failed to use Gymnasium ({str(e)}), falling back to original gym")
-        import gym
-        env = gym.make(args.env_name)
-    
-    # Rest of your function remains the same
-    # ...
-    
-    return env, state_dim, is_disc_action, action_dim, running_state, device, dtype
-
-
 def parse_arguments():
     parser = argparse.ArgumentParser(description='PyTorch GAIL example')
     parser.add_argument('--env-name', default="Hopper-v2", metavar='G',
@@ -82,6 +63,18 @@ def parse_arguments():
 def setup_environment(args):
     """Set up the environment, random seeds, and device"""
     # Set device
+
+    try:
+        # Try to use the new Gymnasium adapter
+        import environment_adapter as gym_adapter
+        env = gym_adapter.make(args.env_name)
+        print(f"Using Gymnasium environment: {args.env_name}")
+    except Exception as e:
+        # Fall back to original gym as a last resort
+        print(f"Failed to use Gymnasium ({str(e)}), falling back to original gym")
+        import gym
+        env = gym.make(args.env_name)
+    
     dtype = torch.float64
     torch.set_default_dtype(dtype)
     device = torch.device('cuda', index=args.gpu_index) if torch.cuda.is_available() else torch.device('cpu')
