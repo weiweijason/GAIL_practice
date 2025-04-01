@@ -1,40 +1,39 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.distributions import Categorical
 
-def ppo_step(policy_net, value_net, policy_optimizer, value_optimizer, optim_value_iternum, 
-             states, actions, returns, advantages, fixed_log_probs, clip_epsilon, l2_reg):
-    """
-    Proximal Policy Optimization update step
-    """
-    # PPO value network update
-    for _ in range(optim_value_iternum):
-        values_pred = value_net(states)
-        value_loss = (values_pred - returns).pow(2).mean()
+class Policy(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super(Policy, self).__init__()
+        self.fc1 = nn.Linear(state_dim, 128)  # Wider network
+        self.fc2 = nn.Linear(128, 64)
+        self.action_head = nn.Linear(64, action_dim)
         
-        # Weight decay for regularization
-        for param in value_net.parameters():
-            value_loss += param.pow(2).sum() * l2_reg
-            
-        value_optimizer.zero_grad()
-        value_loss.backward()
-        value_optimizer.step()
-    
-    # PPO policy network update
-    log_probs = policy_net.get_log_prob(states, actions)
-    ratio = torch.exp(log_probs - fixed_log_probs)
-    surr1 = ratio * advantages
-    surr2 = torch.clamp(ratio, 1.0 - clip_epsilon, 1.0 + clip_epsilon) * advantages
-    policy_loss = -torch.min(surr1, surr2).mean()
-    
-    # Weight decay for regularization
-    for param in policy_net.parameters():
-        policy_loss += param.pow(2).sum() * l2_reg
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        action_probs = F.softmax(self.action_head(x), dim=-1)
+        return action_probs
         
-    policy_optimizer.zero_grad()
-    policy_loss.backward()
-    policy_optimizer.step()
+    def act(self, state):
+        """Returns action and log probability for state"""
+        state = torch.FloatTensor(state).unsqueeze(0)
+        action_probs = self.forward(state)
+        dist = Categorical(action_probs)
+        action = dist.sample()
+        return action.item(), dist.log_prob(action)
     
-    # For logging
-    mean_kl = 0.5 * ((fixed_log_probs - log_probs) ** 2).mean()
-    mean_entropy = -log_probs.mean()
+    def evaluate(self, states, actions):
+        """Returns log probs, entropy for batch of states, actions"""
+        action_probs = self.forward(states)
+        dist = Categorical(action_probs)
+        action_log_probs = dist.log_prob(actions)
+        entropy = dist.entropy()
+        return action_log_probs, entropy
     
-    return value_loss.item(), policy_loss.item(), mean_kl.item(), mean_entropy.item()
+    def get_log_prob(self, states, actions):
+        """Returns log probs for states, actions"""
+        action_probs = self.forward(states)
+        dist = Categorical(action_probs)
+        return dist.log_prob(actions)
