@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils import *
 from models.policy import Policy
-from models.critic import Value
+from models.value import Value
 from models.policy_disc import DiscretePolicy
 from models.discriminator import Discriminator
 from core.ppo import ppo_step
