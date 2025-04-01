@@ -41,7 +41,7 @@ def load_expert_demonstrations(n_demos=50):
 expert_states, expert_actions = load_expert_demonstrations()
 
 # GAIL training loop
-def train_gail(n_epochs=100, n_steps_per_epoch=10):
+def train_gail(n_epochs=1000, n_steps_per_epoch=10):
     for epoch in tqdm(range(n_epochs)):
         # Sample trajectories using current policy
         states, actions, log_probs = sample_trajectories(n_steps_per_epoch)
